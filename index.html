@@ -1,0 +1,487 @@
+
+<title>Advanced Physics Sandbox</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.18.0/matter.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap');
+  
+  body { 
+    margin: 0; 
+    padding: 0; 
+    overflow: hidden; 
+    background-color: #1a1a2e; 
+    font-family: 'Roboto', sans-serif;
+    display: flex;
+  }
+  
+  #game-container { 
+    flex-grow: 1;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  canvas { 
+    border: 2px solid #e94560; 
+    border-radius: 10px; 
+  }
+  
+  #sidebar {
+    width: 250px;
+    height: 100vh;
+    background-color: #222236;
+    color: #ffffff;
+    padding: 20px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  #sidebar h1 {
+    font-size: 24px;
+    margin-bottom: 20px;
+  }
+  
+  .search-container {
+    background-color: #2a2a42;
+    border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 20px;
+  }
+  
+  .search-container input {
+    width: 100%;
+    background: none;
+    border: none;
+    color: #ffffff;
+    font-size: 14px;
+  }
+  
+  .search-container input::placeholder {
+    color: #9999aa;
+  }
+  
+  .menu-item {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    margin-bottom: 5px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  .menu-item:hover, .menu-item.active {
+    background-color: #2d72fe;
+  }
+  
+  .menu-item i {
+    margin-right: 10px;
+    font-size: 18px;
+  }
+  
+  .slider-container {
+    margin-top: 10px;
+  }
+  
+  .slider-container label {
+    display: block;
+    margin-bottom: 5px;
+  }
+  
+  .slider {
+    width: 100%;
+    -webkit-appearance: none;
+    height: 5px;
+    border-radius: 5px;
+    background: #2a2a42;
+    outline: none;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+  }
+  
+  .slider:hover {
+    opacity: 1;
+  }
+  
+  .slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    background: #2d72fe;
+    cursor: pointer;
+  }
+  
+  .user-profile {
+    margin-top: auto;
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    background-color: #2a2a42;
+    border-radius: 8px;
+  }
+  
+  .user-profile img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 10px;
+  }
+  
+  .user-info {
+    flex-grow: 1;
+  }
+  
+  .user-info .name {
+    font-weight: 500;
+  }
+  
+  .user-info .status {
+    font-size: 12px;
+    color: #9999aa;
+  }
+
+
+  #watermark {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: #ffffff;
+    font-size: 12px;
+    opacity: 0.7;
+    cursor: pointer;
+    transition: opacity 0.3s;
+  }
+
+  #watermark:hover {
+    opacity: 1;
+  }
+
+  #popup {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #222236;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    z-index: 1000;
+  }
+
+  #popup h2 {
+    color: #ffffff;
+    margin-bottom: 15px;
+  }
+
+  #popup a {
+    display: block;
+    color: #2d72fe;
+    margin-bottom: 10px;
+    text-decoration: none;
+  }
+
+  #popup a:hover {
+    text-decoration: underline;
+  }
+
+  #closePopup {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    color: #ffffff;
+    cursor: pointer;
+  }
+  
+</style>
+</head>
+<body>
+
+  
+
+  <div id="watermark">Made by Markel August</div>
+</div>
+
+<div id="popup">
+  <h2>Markel August Links</h2>
+  <a href="https://www.linkedin.com/in/maaugust" target="_blank">www.linkedin.com/in/maaugust</a>
+  <a href="https://github.com/markelaugust74" target="_blank">https://github.com/markelaugust74</a>
+  <a href="#link3">Patreon Soon!</a>
+  <span id="closePopup">×</span>
+</div>
+  
+<div id="sidebar">
+  <h1>Dashboard</h1>
+  <div class="search-container">
+    <input type="text" placeholder="Search...">
+  </div>
+  <div class="menu-item active" id="dashboardBtn">
+    <i>🏠</i> Dashboard
+  </div>
+  <div class="menu-item" id="addShapeBtn">
+    <i>➕</i> Add Shape
+  </div>
+  <div class="menu-item" id="resetBtn">
+    <i>🔄</i> Reset World
+  </div>
+  <div class="menu-item" id="mouseForceBtn">
+    <i>🖱️</i> Mouse Force
+  </div>
+  <div class="menu-item" id="blackHoleBtn">
+    <i>🕳️</i> Black Hole
+  </div>
+  
+  <div class="slider-container">
+    <label for="mouseStrength">Mouse Strength</label>
+    <input type="range" min="1" max="10" value="5" class="slider" id="mouseStrength">
+  </div>
+  
+  <div class="slider-container">
+    <label for="blackHoleStrength">Black Hole Strength</label>
+    <input type="range" min="1" max="10" value="5" class="slider" id="blackHoleStrength">
+  </div>
+  
+  <div class="slider-container">
+    <label for="weight">Weight</label>
+    <input type="range" min="0.1" max="10" step="0.1" value="1" class="slider" id="weight">
+  </div>
+  
+  <div class="slider-container">
+    <label for="gravity">Gravity</label>
+    <input type="range" min="-5" max="5" step="0.1" value="1" class="slider" id="gravity">
+  </div>
+  
+  <div class="slider-container">
+    <label for="friction">Friction</label>
+    <input type="range" min="0" max="1" step="0.01" value="0.1" class="slider" id="friction">
+  </div>
+  
+  <div class="slider-container">
+    <label for="restitution">Bounce</label>
+    <input type="range" min="0" max="1" step="0.01" value="0.9" class="slider" id="restitution">
+  </div>
+  
+  <div class="user-profile">
+    <img src="https://play-lh.googleusercontent.com/z-ppwF62-FuXHMO7q20rrBMZeOnHfx1t9UPkUqtyouuGW7WbeUZECmyeNHAus2Jcxw=w526-h296-rw" alt="User Avatar">
+    <div class="user-info">
+      <div class="name">John Doe</div>
+      <div class="status">Online</div>
+    </div>
+  </div>
+</div>
+
+<div id="game-container">
+  <canvas id="game-canvas"></canvas>
+</div>
+
+<script>
+const { Engine, Render, World, Bodies, Body, Events, Mouse, MouseConstraint, Composite, Vector } = Matter;
+
+const WIDTH = 800;
+const HEIGHT = 600;
+const WALL_THICKNESS = 50;
+
+const engine = Engine.create();
+const render = Render.create({
+  canvas: document.getElementById('game-canvas'),
+  engine: engine,
+  options: {
+    width: WIDTH,
+    height: HEIGHT,
+    wireframes: false,
+    background: '#1a1a2e'
+  }
+});
+
+const mouse = Mouse.create(render.canvas);
+const mouseConstraint = MouseConstraint.create(engine, {
+  mouse: mouse,
+  constraint: {
+    stiffness: 0.2,
+    render: { visible: false }
+  }
+});
+
+World.add(engine.world, mouseConstraint);
+render.mouse = mouse;
+
+const shapes = [
+  [[0, 0], [1, 0], [0, 1], [1, 1]],  // Square
+  [[0, 0], [1, 0], [2, 0], [3, 0]],  // Line
+  [[0, 0], [0, 1], [1, 1], [2, 1]],  // L shape
+  [[2, 0], [0, 1], [1, 1], [2, 1]],  // Reverse L shape
+  [[1, 0], [2, 0], [0, 1], [1, 1]],  // S shape
+  [[0, 0], [1, 0], [1, 1], [2, 1]],  // Z shape
+  [[1, 0], [0, 1], [1, 1], [2, 1]]   // T shape
+];
+
+const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#f9d56e', '#ff8c42', '#8785a2'];
+
+const config = {
+  mouseForce: false,
+  mouseStrength: 5,
+  blackHole: false,
+  blackHoleStrength: 5,
+  weight: 1,
+  gravity: 1,
+  friction: 0.1,
+  restitution: 0.9
+};
+
+function createBoundaries() {
+  return [
+    Bodies.rectangle(WIDTH / 2, HEIGHT + WALL_THICKNESS / 2, WIDTH, WALL_THICKNESS, { isStatic: true, render: { fillStyle: '#e94560' } }),
+    Bodies.rectangle(WIDTH / 2, -WALL_THICKNESS / 2, WIDTH, WALL_THICKNESS, { isStatic: true, render: { fillStyle: '#e94560' } }),
+    Bodies.rectangle(-WALL_THICKNESS / 2, HEIGHT / 2, WALL_THICKNESS, HEIGHT, { isStatic: true, render: { fillStyle: '#e94560' } }),
+    Bodies.rectangle(WIDTH + WALL_THICKNESS / 2, HEIGHT / 2, WALL_THICKNESS, HEIGHT, { isStatic: true, render: { fillStyle: '#e94560' } })
+  ];
+}
+
+function addRandomShape(x, y) {
+  const shape = shapes[Math.floor(Math.random() * shapes.length)];
+  const color = colors[Math.floor(Math.random() * colors.length)];
+  const particles = shape.map(([dx, dy]) => 
+    Bodies.circle(x + dx * 20, y + dy * 20, 10, {
+      render: { fillStyle: color },
+      friction: config.friction,
+      restitution: config.restitution,
+      density: config.weight * 0.001
+    })
+  );
+  World.add(engine.world, particles);
+}
+
+function resetWorld() {
+  World.clear(engine.world, true);
+  World.add(engine.world, createBoundaries());
+  World.add(engine.world, mouseConstraint);
+}
+
+function updatePhysics() {
+  const bodies = Composite.allBodies(engine.world);
+  bodies.forEach(body => {
+    if (!body.isStatic) {
+      Body.set(body, {
+        friction: config.friction,
+        restitution: config.restitution,
+        density: config.weight * 0.001
+      });
+    }
+  });
+  engine.world.gravity.y = config.gravity;
+}
+
+Events.on(engine, 'afterUpdate', () => {
+  if (config.mouseForce) {
+    const bodies = Composite.allBodies(engine.world);
+    bodies.forEach(body => {
+      if (!body.isStatic) {
+        const distance = Vector.sub(mouse.position, body.position);
+        if (Vector.magnitude(distance) < 100) {
+          Body.applyForce(body, body.position, Vector.mult(Vector.normalise(distance), config.mouseStrength * 0.00001));
+        }
+      }
+    });
+  }
+
+  if (config.blackHole) {
+    const ctx = render.context;
+    const blackHoleRadius = 20 + config.blackHoleStrength * 5;
+    
+    ctx.beginPath();
+    ctx.arc(mouse.position.x, mouse.position.y, blackHoleRadius, 0, 2 * Math.PI, false);
+    const gradient = ctx.createRadialGradient(mouse.position.x, mouse.position.y, 0, mouse.position.x, mouse.position.y, blackHoleRadius);
+    gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
+    gradient.addColorStop(0.3, 'rgba(162, 155, 254, 1)');
+    gradient.addColorStop(0.6, 'rgba(108, 92, 231, 1)');
+    gradient.addColorStop(0.8, 'rgba(9, 132, 227, 1)');
+    gradient.addColorStop(1, 'rgba(0, 0, 0, 1)');
+    ctx.fillStyle = gradient;
+    ctx.fill();
+    
+    const bodies = Composite.allBodies(engine.world);
+    const bodiesToRemove = [];
+    bodies.forEach(body => {
+      if (!body.isStatic) {
+        const distance = Vector.sub(mouse.position, body.position);
+        const magnitude = Vector.magnitude(distance);
+        if (magnitude < blackHoleRadius) {
+          bodiesToRemove.push(body);
+        } else {
+          Body.applyForce(body, body.position, Vector.mult(Vector.normalise(distance), config.blackHoleStrength * 0.00001 / (magnitude * magnitude)));
+        }
+      }
+    });
+    bodiesToRemove.forEach(body => World.remove(engine.world, body));
+  }
+});
+
+Engine.run(engine);
+Render.run(render);
+
+// Event Listeners
+
+document.getElementById('watermark').addEventListener('click', () => {
+  document.getElementById('popup').style.display = 'block';
+});
+
+document.getElementById('closePopup').addEventListener('click', () => {
+  document.getElementById('popup').style.display = 'none';
+});
+
+// Close popup when clicking outside
+window.addEventListener('click', (event) => {
+  if (event.target == document.getElementById('popup')) {
+    document.getElementById('popup').style.display = 'none';
+  }
+});
+
+document.getElementById('addShapeBtn').addEventListener('click', () => addRandomShape(WIDTH / 2, HEIGHT / 4));
+document.getElementById('resetBtn').addEventListener('click', resetWorld);
+document.getElementById('mouseForceBtn').addEventListener('click', () => {
+  config.mouseForce = !config.mouseForce;
+  document.getElementById('mouseForceBtn').classList.toggle('active');
+});
+document.getElementById('blackHoleBtn').addEventListener('click', () => {
+  config.blackHole = !config.blackHole;
+  document.getElementById('blackHoleBtn').classList.toggle('active');
+});
+
+document.getElementById('mouseStrength').addEventListener('input', (e) => {
+  config.mouseStrength = parseFloat(e.target.value);
+});
+document.getElementById('blackHoleStrength').addEventListener('input', (e) => {
+  config.blackHoleStrength = parseFloat(e.target.value);
+});
+document.getElementById('weight').addEventListener('input', (e) => {
+  config.weight = parseFloat(e.target.value);
+  updatePhysics();
+});
+document.getElementById('gravity').addEventListener('input', (e) => {
+  config.gravity = parseFloat(e.target.value);
+  updatePhysics();
+});
+document.getElementById('friction').addEventListener('input', (e) => {
+  config.friction = parseFloat(e.target.value);
+  updatePhysics();
+});
+document.getElementById('restitution').addEventListener('input', (e) => {
+  config.restitution = parseFloat(e.target.value);
+  updatePhysics();
+});
+
+// Add click event listener to the canvas
+render.canvas.addEventListener('click', (event) => {
+  const rect = render.canvas.getBoundingClientRect();
+  const x = event.clientX - rect.left;
+  const y = event.clientY - rect.top;
+  addRandomShape(x, y);
+});
+
+resetWorld();
+</script>
+</body></html>
